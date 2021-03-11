@@ -11,11 +11,17 @@ let CustomerSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Product'
         },
-        type: {type: Number},
-        amount: Number,
+        type: {
+            type: Number,
+            min: 1, 
+            max: 3
+        },
+        amount: {
+            type: Number,
+            min: 0
+        },
         buyInto: Boolean
     }]
 })
-
 let Customer = mongoose.model('Customer', CustomerSchema, 'customers')
 module.exports = Customer

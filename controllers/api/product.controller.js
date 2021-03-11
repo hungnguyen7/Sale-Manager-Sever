@@ -40,10 +40,10 @@ module.exports={
                     {
                         $push: {
                             classification:{
-                            type: productSentFromClient.type,
-                            amount: productSentFromClient.amount,
-                            purchasePrice: productSentFromClient.purchasePrice,
-                            salePrice: productSentFromClient.salePrice
+                                type: productSentFromClient.type,
+                                amount: productSentFromClient.amount,
+                                purchasePrice: productSentFromClient.purchasePrice,
+                                salePrice: productSentFromClient.salePrice
                             }
                         }
                     })
