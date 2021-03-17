@@ -3,7 +3,7 @@ const Product = require('../../models/product.model');
 module.exports = {
     getCustomers: async(req, res)=>{
         try{
-            let customers = await Customer.find({});
+            let customers = await Customer.find({}, {cart: 0});
             res.status(200).json(customers)
         }catch(error){
             res.status(404).send(error)
@@ -72,15 +72,11 @@ module.exports = {
     getCart: async(req, res)=>{
         try{
             let customerId = req.params.customerId
-            let stockInCart = await Customer.findById(customerId).populate('cart.productId')
+            let stockInCart = await Customer.findById(customerId).populate('cart.productId', 'name')
             if(!stockInCart)
                 throw {
                     status: 'Customer is not valid'
                 }
-            //Thay đổi _doc của stockInCart
-            stockInCart._doc.cart.forEach(el=>{
-                delete el._doc.productId._doc.classification
-            })
             res.status(200).json(stockInCart.cart)
         }catch(error){
             res.status(404).send(error)
@@ -110,7 +106,7 @@ module.exports = {
                     })
                     if(!productInStore)
                         throw {
-                            status: "Amount is not valid"
+                            status: "Amount or type is not valid"
                         }
                     let getAmountOfProduct = productInStore.classification[0].amount
                     await Product.findOneAndUpdate({
