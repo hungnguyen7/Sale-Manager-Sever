@@ -1,3 +1,4 @@
+const Customer = require('./customer.model') 
 const mongoose = require('mongoose')
 let productSchema = new mongoose.Schema({
     name: {
@@ -36,6 +37,17 @@ let productSchema = new mongoose.Schema({
         default: Date.now
     }
 })
-
+productSchema.post('findOneAndDelete', async function(doc){
+    await Customer.updateMany({
+        "cart.productId": doc._id
+    }, {
+        $pull:{
+            cart: {
+                productId: doc._id
+            }
+        }
+    })
+    console.log(doc._id)
+})
 let Product = mongoose.model('Product', productSchema, 'products')
 module.exports = Product

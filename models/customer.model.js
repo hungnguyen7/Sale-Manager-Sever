@@ -5,7 +5,8 @@ let CustomerSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    phone: Number,
+    phone: String,
+    address: String,
     cart: [{
         productId: {
             type: mongoose.Schema.Types.ObjectId,

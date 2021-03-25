@@ -28,7 +28,8 @@ module.exports = {
             if(!existCustomer){
                 await Customer.create({
                     name: customerSentFromClient.name.toUpperCase(),
-                    phone: customerSentFromClient.phone
+                    phone: customerSentFromClient.phone,
+                    address: customerSentFromClient.address
                 })
             }
             else{
