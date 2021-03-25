@@ -109,8 +109,11 @@ module.exports={
                     status: "Product is not existed"
                 }
             productOnStore=productOnStore.classification.filter(product=>product.type===req.body.type)[0]
+            console.log(productOnStore)
             let userSubmittedKeysAreMissing = Object.keys(productOnStore._doc).filter(key=>keySentFromClient.indexOf(key)<0)
             userSubmittedKeysAreMissing.map(key=>req.body[key]=productOnStore[key])
+            // Không cho phép sửa số lượng tồn kho khi đã tạo
+            req.body.amount = productOnStore.amount
             await Product.findOneAndUpdate({_id: req.params.productId, "classification.type": req.body.type}, {
                 $set:{
                         "classification.$": req.body

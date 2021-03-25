@@ -109,7 +109,7 @@ module.exports = {
                         throw {
                             status: "Amount or type is not valid"
                         }
-                    let getAmountOfProduct = productInStore.classification[0].amount
+                    let getAmountOfProduct = productInStore.classification.filter(value=>value.type===req.body.type)[0].amount
                     await Product.findOneAndUpdate({
                         _id: req.body.productId,
                         "classification.type": req.body.type
@@ -135,7 +135,7 @@ module.exports = {
                         throw {
                             status: "Something wrong in parament"
                         }
-                    let getAmountOfProduct = productInStore.classification[0].amount
+                    let getAmountOfProduct = productInStore.classification.filter(value=>value.type===req.body.type)[0].amount
                     await Product.findOneAndUpdate({
                         _id: req.body.productId,
                         "classification.type": req.body.type
@@ -185,7 +185,7 @@ module.exports = {
                 _id: productHasBeenDeleted.productId,
                 "classification.type": productHasBeenDeleted.type
             })
-            let getAmountOfProduct = productInStore.classification[0].amount
+            let getAmountOfProduct = productInStore.classification.filter(value=>value.type===productHasBeenDeleted.type)[0].amount
             if(productHasBeenDeleted.buyInto){
                 await Product.findOneAndUpdate({
                     _id: productHasBeenDeleted.productId,
