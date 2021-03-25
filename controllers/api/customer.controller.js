@@ -109,7 +109,8 @@ module.exports = {
                         throw {
                             status: "Amount or type is not valid"
                         }
-                    let getAmountOfProduct = productInStore.classification.filter(value=>value.type===req.body.type)[0].amount
+                    let 
+                     = productInStore.classification.filter(value=>value.type===req.body.type)[0].amount
                     await Product.findOneAndUpdate({
                         _id: req.body.productId,
                         "classification.type": req.body.type
@@ -117,7 +118,7 @@ module.exports = {
                         $set:{
                             "classification.$.amount": getAmountOfProduct-req.body.amount
                         }
-                    })
+                    }, {runValidators: true})
                     await Customer.findOneAndUpdate({
                         _id: req.params.customerId,
                     },{
@@ -143,7 +144,7 @@ module.exports = {
                         $set:{
                             "classification.$.amount": getAmountOfProduct+req.body.amount
                         }
-                    })
+                    }, {runValidators: true})
                     await Customer.findOneAndUpdate({
                         _id: req.params.customerId,
                     },{
@@ -194,7 +195,7 @@ module.exports = {
                     $set:{
                         "classification.$.amount": getAmountOfProduct-productHasBeenDeleted.amount
                     }
-                })
+                }, {runValidators: true})
             }
             else{
                 await Product.findOneAndUpdate({
@@ -204,7 +205,7 @@ module.exports = {
                     $set:{
                         "classification.$.amount": getAmountOfProduct+productHasBeenDeleted.amount
                     }
-                })
+                }, {runValidators: true})
             }
             res.status(200).send({
                 status: "Deleted deal successfully"
