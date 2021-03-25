@@ -13,7 +13,7 @@ router.get('/:customerId/cart', controller.getCart)
 router.post('/create', controller.createCustomer)
 
 router.delete('/:customerId', controller.deleteOneUser)
-router.delete('/cart/:dealId/delete', controller.deleteDealById)
+router.delete('/cart/:dealId', controller.deleteDealById)
 
 router.patch('/:customerId/edit', controller.editCustomer)
 router.put('/:customerId/addToCart', controller.addToCart)
