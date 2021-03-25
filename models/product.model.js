@@ -38,16 +38,14 @@ let productSchema = new mongoose.Schema({
     }
 })
 productSchema.post('findOneAndDelete', async function(doc){
-    await Customer.updateMany({
-        "cart.productId": doc._id
-    }, {
+    await Customer.updateMany({},
+    {
         $pull:{
             cart: {
-                productId: doc._id
+                "productId": doc._id
             }
         }
     })
-    console.log(doc._id)
 })
 let Product = mongoose.model('Product', productSchema, 'products')
 module.exports = Product

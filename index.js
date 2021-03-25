@@ -4,7 +4,8 @@ const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 mongoose.connect(process.env.MONGO_URL,{
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    useFindAndModify: true
 })
 
 const cors = require('cors')

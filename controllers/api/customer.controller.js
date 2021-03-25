@@ -167,9 +167,8 @@ module.exports = {
     },
     deleteDealById: async(req, res)=>{
         try{
-            let deletedDeal = await Customer.findOneAndUpdate({
-                "cart._id": req.params.dealId
-            },{
+            let deletedDeal = await Customer.findOneAndUpdate({},
+            {
                 $pull:{
                     cart:{
                         _id: req.params.dealId

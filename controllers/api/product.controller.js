@@ -1,3 +1,4 @@
+const Customer = require('../../models/customer.model');
 const Product = require('../../models/product.model')
 module.exports={
     getProducts: async(req, res)=>{
@@ -83,6 +84,15 @@ module.exports={
                     }
                 }
             }, {new: true})
+            await Customer.updateMany({}, {
+                $pull:{
+                    cart:{
+                        productId: req.params.productId,
+                        type: parseInt(req.params.type)
+                    }
+                }
+            })
+            console.log(test)
             res.status(200).send({
                 status: "Deleted one type of product successfully"
             })
