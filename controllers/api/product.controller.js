@@ -134,14 +134,22 @@ module.exports={
             let productOnStore = await Product.findOne({
                 _id: req.params.productId,
                 "classification.type": req.body.type
+            }, 
+            {
+                //Chỉ lấy các nested object matched
+                'classification.$': req.body.type
+            },
+            {
+                runValidators: true
             })
             if(!productOnStore)
                 throw {
-                    status: "Product is not existed"
+                    status: "Product is not existed or type is not valid"
                 }
+            productOnStore = productOnStore.classification[0].toObject()
+            delete productOnStore._id
             //Lấy type của product trong store trùng với người dùng gửi lên
-            productOnStore=productOnStore.classification.filter(product=>product.type===req.body.type)[0]
-            let userSubmittedKeysAreMissing = Object.keys(productOnStore._doc).filter(key=>keySentFromClient.indexOf(key)<0)
+            let userSubmittedKeysAreMissing = Object.keys(productOnStore).filter(key=>keySentFromClient.indexOf(key)<0)
             //Lấy các field mà người dùng gửi thiếu thêm vào req.body
             userSubmittedKeysAreMissing.map(key=>req.body[key]=productOnStore[key])
             // Không cho phép sửa số lượng tồn kho khi đã tạo, tránh trường hợp xóa khối lượng nhưng hóa đơn người dùng vẫn còn
