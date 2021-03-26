@@ -11,4 +11,5 @@ router.delete('/:productId', controller.deleteOneProduct)
 router.delete('/:productId/:type', controller.deleteOneTypeOfProduct)
 
 router.patch('/:productId/edit', controller.editProduct)
+router.patch('/:productId/addType', controller.addType)
 module.exports=router

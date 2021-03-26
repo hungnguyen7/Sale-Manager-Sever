@@ -10,8 +10,7 @@ let productSchema = new mongoose.Schema({
             type: Number,
             required: true,
             min: 1,
-            max: 3,
-            default: 1
+            max: 3
         },
         amount: {
             type: Number,
