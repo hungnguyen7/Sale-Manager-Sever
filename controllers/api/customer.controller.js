@@ -99,6 +99,7 @@ module.exports = {
     },
     addToCart: async(req, res)=>{
         try{
+            //Kiểm tra sản phẩm có trong giỏ hàng chưa, nếu chưa thì tùy vào buyInto mà thêm vào
             let existProductInCart = await Customer.findOne({
                 _id: req.params.customerId,
                 cart: {
