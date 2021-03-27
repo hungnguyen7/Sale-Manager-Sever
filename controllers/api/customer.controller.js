@@ -3,7 +3,10 @@ const Product = require('../../models/product.model');
 module.exports = {
     getCustomers: async(req, res)=>{
         try{
-            let customers = await Customer.find({}, {cart: 0});
+            let customers = await Customer.find({},{
+                //Không lấy field cart
+                cart: 0
+            });
             res.status(200).json(customers)
         }catch(error){
             res.status(404).send(error)
@@ -11,10 +14,12 @@ module.exports = {
     },
     getCustomerById: async(req, res)=>{
         try{
-            let customer = await Customer.findOne({_id: req.params.customerId});
+            let customer = await Customer.findOne({
+                _id: req.params.customerId
+            });
             if(!customer)
                 throw {
-                    status: "Customer not found"
+                    status: "Customer is not found"
                 }
             res.status(200).json(customer)
         }catch(error){
@@ -23,22 +28,23 @@ module.exports = {
     },
     createCustomer: async(req, res)=>{
         try{
-            customerSentFromClient = req.body
-            let existCustomer = await Customer.findOne({name: customerSentFromClient.name.toUpperCase()})
-            if(!existCustomer){
+            let customer = await Customer.findOne({
+                name: req.body.name.toUpperCase()
+            })
+            if(!customer){
                 await Customer.create({
-                    name: customerSentFromClient.name.toUpperCase(),
-                    phone: customerSentFromClient.phone,
-                    address: customerSentFromClient.address
+                    name: req.body.name.toUpperCase(),
+                    phone: req.body.phone,
+                    address: req.body.address
                 })
             }
             else{
                 throw {
-                    status: "Customer existed."
+                    status: "Customer is existed"
                 }
             }
             res.status(201).send({
-                status: "Created successfully"
+                status: "Created customer successfully"
             })
         }catch(error){
             res.status(404).send(error)
@@ -46,23 +52,31 @@ module.exports = {
     },
     deleteOneUser: async(req, res)=>{
         try{
-            await Customer.findByIdAndDelete({_id: req.params.customerId})
+            await Customer.findByIdAndDelete({
+                _id: req.params.customerId
+            })
             res.status(200).send({
-                status: "Deleted Successfully"
+                status: "Deleted customer Successfully"
             })
         }catch(error){
             res.status(404).send(error)
         }
     },
     editCustomer: async(req, res)=>{
-        console.log(req.params, req.body)
         try{
-            let customerOnDB = await Customer.findOne({_id: req.params.customerId})
-            if(!customerOnDB)
+            let customer = await Customer.findOneAndUpdate({
+                _id: req.params.customerId
+            },
+            {
+                $set: req.body
+            },
+            {
+                new: true
+            })
+            if(!customer)
                 throw{
                     status: "Customer is not existed"
                 }
-            await Customer.findOneAndUpdate({_id: req.params.customerId},{$set: req.body}, {new: true})
             res.status(200).send({
                 status: "Edited successfully"
             })
@@ -72,13 +86,13 @@ module.exports = {
     },
     getCart: async(req, res)=>{
         try{
-            let customerId = req.params.customerId
-            let stockInCart = await Customer.findById(customerId).populate('cart.productId', 'name')
+            //Chỉ lấy field cart
+            let stockInCart = await Customer.findById(req.params.customerId, 'cart').populate('cart.productId', 'name')
             if(!stockInCart)
                 throw {
                     status: 'Customer is not valid'
                 }
-            res.status(200).json(stockInCart.cart)
+            res.status(200).json(stockInCart)
         }catch(error){
             res.status(404).send(error)
         }
@@ -87,67 +101,66 @@ module.exports = {
         try{
             let existProductInCart = await Customer.findOne({
                 _id: req.params.customerId,
-                cart: {$elemMatch:{
+                cart: {
+                    $elemMatch:{
                     productId: req.body.productId,
                     type: req.body.type,
                     buyInto: req.body.buyInto
-                }}
-              
+                    }
+                }
             })
             if(!existProductInCart){
                 if(!req.body.buyInto){
-                    let productInStore = await Product.findOne({
+                    let productInStore = await Product.findOneAndUpdate({
                         _id: req.body.productId,
-                        classification: {$elemMatch:{
-                            type: req.body.type,
-                            amount: {
-                                $gte: req.body.amount
+                        classification: {
+                            $elemMatch:{
+                                type: req.body.type,
+                                amount: {
+                                    $gte: req.body.amount
+                                }
                             }
-                        }}
+                        }
+                    },
+                    {
+                        $inc:{
+                            'classification.$.amount':-req.body.amount
+                        }
                     })
                     if(!productInStore)
                         throw {
-                            status: "Amount or type is not valid"
+                            status: "Cannot buying. Amount or type is not valid"
                         }
-                    let 
-                     = productInStore.classification.filter(value=>value.type===req.body.type)[0].amount
-                    await Product.findOneAndUpdate({
-                        _id: req.body.productId,
-                        "classification.type": req.body.type
-                    },{
-                        $set:{
-                            "classification.$.amount": getAmountOfProduct-req.body.amount
-                        }
-                    }, {runValidators: true})
                     await Customer.findOneAndUpdate({
                         _id: req.params.customerId,
-                    },{
+                    },
+                    {
                         $push:{
                             cart:req.body
                         }
                     })
                 }
                 else{
-                    let productInStore = await Product.findOne({
+                   
+                    let productInStore = await Product.findOneAndUpdate({
                         _id: req.body.productId,
                         "classification.type": req.body.type
+                    },
+                    {
+                        $inc:{
+                            "classification.$.amount": req.body.amount
+                        }
+                    },{
+                        runValidators: true
                     })
                     if(!productInStore)
                         throw {
-                            status: "Something wrong in parament"
+                            status: "Cannot selling. Amount or type is not valid"
                         }
-                    let getAmountOfProduct = productInStore.classification.filter(value=>value.type===req.body.type)[0].amount
-                    await Product.findOneAndUpdate({
-                        _id: req.body.productId,
-                        "classification.type": req.body.type
-                    },{
-                        $set:{
-                            "classification.$.amount": getAmountOfProduct+req.body.amount
-                        }
-                    }, {runValidators: true})
                     await Customer.findOneAndUpdate({
                         _id: req.params.customerId,
-                    },{
+                    },
+                    {
                         $push:{
                             cart:req.body
                         }
@@ -168,44 +181,59 @@ module.exports = {
     },
     deleteDealById: async(req, res)=>{
         try{
-            let deletedDeal = await Customer.findOneAndUpdate({},
+            let deletedDeal = await Customer.findOneAndUpdate({
+                'cart._id': req.params.dealId
+            },
             {
                 $pull:{
                     cart:{
                         _id: req.params.dealId
                     }
                 }
+            },
+            {
+                'cart.$': 1
             })
             if(!deletedDeal)
                 throw{
                     status:"Deal is not existed"
                 }
-            //Lấy product bị xóa thêm lại vào store
-            let productHasBeenDeleted = deletedDeal.cart.filter(deal=>deal._id.toString()===req.params.dealId)[0]
+            //Lấy product trong cart bị xóa thêm lại vào store
+            let productHasBeenDeleted = deletedDeal.cart[0]
             let productInStore = await Product.findOne({
                 _id: productHasBeenDeleted.productId,
                 "classification.type": productHasBeenDeleted.type
+            },
+            {
+                'classification.$': 1
             })
-            let getAmountOfProduct = productInStore.classification.filter(value=>value.type===productHasBeenDeleted.type)[0].amount
+            let getAmountOfProduct = productInStore.classification[0].amount
             if(productHasBeenDeleted.buyInto){
                 await Product.findOneAndUpdate({
                     _id: productHasBeenDeleted.productId,
                     "classification.type": productHasBeenDeleted.type
-                },{
+                },
+                {
                     $set:{
                         "classification.$.amount": getAmountOfProduct-productHasBeenDeleted.amount
                     }
-                }, {runValidators: true})
+                },
+                {
+                    runValidators: true
+                })
             }
             else{
                 await Product.findOneAndUpdate({
                     _id: productHasBeenDeleted.productId,
                     "classification.type": productHasBeenDeleted.type
-                },{
+                },
+                {
                     $set:{
                         "classification.$.amount": getAmountOfProduct+productHasBeenDeleted.amount
                     }
-                }, {runValidators: true})
+                },{
+                    runValidators: true
+                })
             }
             res.status(200).send({
                 status: "Deleted deal successfully"
@@ -216,7 +244,9 @@ module.exports = {
     },
     getSeller: async(req, res)=>{
         try{
-            let sellerList = await Customer.find({'cart.buyInto': true})
+            let sellerList = await Customer.find({
+                'cart.buyInto': true
+            })
             res.status(200).json(sellerList)
         }catch(error){
             console.log(error)
@@ -224,7 +254,9 @@ module.exports = {
     },
     getBuyer: async(req, res)=>{
         try{
-            let sellerList = await Customer.find({'cart.buyInto': false})
+            let sellerList = await Customer.find({
+                'cart.buyInto': false
+            })
             res.status(200).json(sellerList)
         }catch(error){
             console.log(error)

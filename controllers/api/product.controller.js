@@ -1,3 +1,4 @@
+const mongoose = require('mongoose')
 const Customer = require('../../models/customer.model');
 const Product = require('../../models/product.model')
 module.exports={
@@ -131,41 +132,29 @@ module.exports={
     editProduct: async(req, res)=>{
         try{
             let keySentFromClient = Object.keys(req.body)
-            let productOnStore = await Product.findOne({
-                _id: req.params.productId,
-                "classification.type": req.body.type
-            }, 
-            {
-                //Chỉ lấy các nested object matched
-                'classification.$': req.body.type
-            },
-            {
-                runValidators: true
-            })
-            if(!productOnStore)
-                throw {
-                    status: "Product is not existed or type is not valid"
+            //Sử dụng aggregate framework pipeline
+            let productOnStore = await Product.aggregate([
+                //Find by Id->Get classification field->unwind->Find by type
+                {
+                    $match: {
+                        _id: mongoose.Types.ObjectId(req.params.productId)
+                    }
+                },
+                {
+                    $project:{
+                        classification: 1
+                    }
+                },
+                {
+                    $unwind: '$classification'
+                },
+                {
+                    $match:{
+                        'classification.type': parseInt(req.body.type)
+                    }
                 }
-            productOnStore = productOnStore.classification[0].toObject()
-            delete productOnStore._id
-            //Lấy type của product trong store trùng với người dùng gửi lên
-            let userSubmittedKeysAreMissing = Object.keys(productOnStore).filter(key=>keySentFromClient.indexOf(key)<0)
-            //Lấy các field mà người dùng gửi thiếu thêm vào req.body
-            userSubmittedKeysAreMissing.map(key=>req.body[key]=productOnStore[key])
-            // Không cho phép sửa số lượng tồn kho khi đã tạo, tránh trường hợp xóa khối lượng nhưng hóa đơn người dùng vẫn còn
-            req.body.amount = productOnStore.amount
-            await Product.findOneAndUpdate({
-                _id: req.params.productId,
-                "classification.type": req.body.type
-            },
-            {
-                $set:{
-                        "classification.$": req.body
-                }
-            }, 
-            {
-                runValidators: true
-            })
+            ])
+            console.log(productOnStore)
             res.status(200).send({
                 status: "Edited successfully"
             })
