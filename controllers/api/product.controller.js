@@ -152,9 +152,38 @@ module.exports={
                     $match:{
                         'classification.type': parseInt(req.body.type)
                     }
+                },
+                {
+                    $project:{
+                        _id: 0,
+                        'classification._id': 0
+                    }
                 }
             ])
-            console.log(productOnStore)
+            if(!productOnStore.length)
+                throw {
+                    status: 'Type of product not found'
+                }
+            // console.log(productOnStore)
+            productOnStore = productOnStore[0]['classification']
+            //Lấy type của product trong store trùng với người dùng gửi lên
+            let userSubmittedKeysAreMissing = Object.keys(productOnStore).filter(key=>keySentFromClient.indexOf(key)<0)
+            //Lấy các field mà người dùng gửi thiếu thêm vào req.body
+            userSubmittedKeysAreMissing.map(key=>req.body[key]=productOnStore[key])
+            // Không cho phép sửa số lượng tồn kho khi đã tạo, tránh trường hợp xóa khối lượng nhưng hóa đơn người dùng vẫn còn
+            req.body.amount = productOnStore.amount
+            await Product.findOneAndUpdate({
+                _id: req.params.productId,
+                "classification.type": req.body.type
+            },
+            {
+                $set:{
+                        "classification.$": req.body
+                }
+            }, 
+            {
+                runValidators: true
+            })
             res.status(200).send({
                 status: "Edited successfully"
             })
