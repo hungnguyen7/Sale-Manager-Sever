@@ -5,7 +5,7 @@ module.exports={
     getProducts: async(req, res)=>{
         try{
             let products = await Product.find({}).sort({
-                "classification.type": 1
+                "name": 1
             });
             res.status(200).json(products)
         }catch(error){
