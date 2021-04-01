@@ -87,7 +87,7 @@ module.exports = {
     getCart: async(req, res)=>{
         try{
             //Chỉ lấy field cart
-            let stockInCart = await Customer.findById(req.params.customerId, 'cart').populate('cart.productId', 'name')
+            let stockInCart = await Customer.findById(req.params.customerId, 'cart').populate('cart.productId')
             if(!stockInCart)
                 throw {
                     status: 'Customer is not valid'
@@ -262,5 +262,23 @@ module.exports = {
         }catch(error){
             console.log(error)
         }
+    },
+    getBill: async(req, res)=>{
+        let stockInCart = await Customer.findById(req.params.customerId, 'cart').populate('cart.productId')
+        let count = 0
+        stockInCart.cart.forEach(element => {
+            let type = element.type
+            let buyInto = element.buyInto
+            let inStore = element.productId.classification.filter(value=>value.type===type)
+            if(buyInto)
+                count+=element.amount*inStore[0].purchasePrice
+            else
+                count+=element.amount*inStore[0].salePrice
+        })
+        console.log(count)
+        res.status(200).json({
+            customerId: req.params.customerId,
+            totalPrice: count
+        })    
     }
 }

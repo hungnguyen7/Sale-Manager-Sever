@@ -7,6 +7,7 @@ router.get('/seller', controller.getSeller)
 router.get('/buyer', controller.getBuyer)
 router.get('/:customerId', controller.getCustomerById)
 router.get('/:customerId/cart', controller.getCart)
+router.get('/:customerId/getBill', controller.getBill)
 
 
 
